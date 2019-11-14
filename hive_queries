@@ -1,0 +1,7 @@
+SELECT departments.id, MAX(STRUCT(salary, first_name)).col1 as salary, MAX(STRUCT(salary, first_name)).col2 AS first_name FROM managers JOIN departments ON (departments.name=managers.department) GROUP BY departments.id;
+
+SELECT first_name, last_name, salary FROM managers SORT BY salary DESC LIMIT 3;
+
+SELECT first_name, last_name, salary FROM managers SORT BY salary LIMIT 2;
+
+SELECT managers.first_name, MAX(STRUCT(engineers.salary, engineers.first_name, engineers.last_name)).col1 AS salary, MAX(STRUCT(engineers.salary, engineers.first_name, engineers.last_name)).col2 AS first_name, MAX(STRUCT(engineers.salary, engineers.first_name, engineers.last_name)).col3 AS last_name FROM managers JOIN engineers ON (managers.id=engineers.manager) GROUP BY managers.first_name;
