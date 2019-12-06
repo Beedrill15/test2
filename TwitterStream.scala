@@ -24,12 +24,12 @@ object TwitterStream {
 			"auto.offset.reset" -> "latest",
 			"enable.auto.commit" -> (false: java.lang.Boolean)
 		)
-		val sparkConf = new SparkConf().setAppName("tweeter")
+//		val sparkConf = new SparkConf().setAppName("tweeter")
 //		val ssc = new StreamingContext(sparkConf, Seconds(2))
 
-		val warehouseLocation = new File("hdfs://sandbox-hdp.hortonworks.com:8020/apps/hive/warehouse/tweets").getAbsolutePath
+		val warehouseLocation = new File("/user/hive/warehouse").getAbsolutePath
 		val spark = SparkSession.builder().appName("tweeter").config("spark.sql.warehouse.dir", warehouseLocation).enableHiveSupport().getOrCreate()
-//		val spark = SparkSession.builder().appName("tweeter").config("hdfs://sandbox-hdp.hortonworks.com:8020", warehouseLocation).enableHiveSupport().getOrCreate()
+
 		import spark.implicits._
 		
 		import spark.sql
@@ -44,8 +44,10 @@ object TwitterStream {
 		)
 
 		sql("DROP TABLE IF EXISTS tweets").show()
+		sql("CREATE TABLE tweets(text String)").show()
+//		print("I should have created the table")
 
-/*		stream.foreachRDD { rdd =>
+		stream.foreachRDD { rdd =>
 			val dataFrame = rdd.map(row => row.value()).toDF().coalesce(1)
 			dataFrame.write.mode(SaveMode.Append).saveAsTable("tweets")
 
@@ -58,7 +60,7 @@ object TwitterStream {
 //				val df = Seq(map.get("text").toString).toDF()
 //				df.write.mode(SaveMode.Append).saveAsTable("tweets")
 			}
-		}*/
+		}
 		
 		ssc.start()
 		ssc.awaitTermination()
