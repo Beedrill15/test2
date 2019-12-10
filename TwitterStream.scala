@@ -24,17 +24,21 @@ object TwitterStream {
 			"auto.offset.reset" -> "latest",
 			"enable.auto.commit" -> (false: java.lang.Boolean)
 		)
-//		val sparkConf = new SparkConf().setAppName("tweeter")
-//		val ssc = new StreamingContext(sparkConf, Seconds(2))
 
-		val warehouseLocation = new File("/user/hive/warehouse").getAbsolutePath
-		val spark = SparkSession.builder().appName("tweeter").config("spark.sql.warehouse.dir", warehouseLocation).enableHiveSupport().getOrCreate()
+		println("I have set the parameters")
+
+		val warehouseLocation = "/apps/hive/warehouse"
+		val spark = SparkSession.builder().appName("tweeter").config("spark.sql.warehouse.dir", warehouseLocation).config("hive.metastore.uris", "thrift://localhost:9083").enableHiveSupport().getOrCreate()
+
+		println("I have established the SparkSession")
 
 		import spark.implicits._
 		
 		import spark.sql
 
 		val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
+
+		println("I have made the StreamingContext")
 
 		val topics = Array("twitter")
 		val stream = KafkaUtils.createDirectStream[String, String](
@@ -43,9 +47,11 @@ object TwitterStream {
 			Subscribe[String, String](topics, kafkaParams)
 		)
 
+		println("I have made the stream")
+
 		sql("DROP TABLE IF EXISTS tweets").show()
-		sql("CREATE TABLE tweets(text String)").show()
-//		print("I should have created the table")
+//		sql("CREATE TABLE tweets(text String)").show()
+		println("I should have created the table")
 
 		stream.foreachRDD { rdd =>
 			val dataFrame = rdd.map(row => row.value()).toDF().coalesce(1)
@@ -56,9 +62,6 @@ object TwitterStream {
 				val tweet = scala.util.parsing.json.JSON.parseFull(value)
 				val map:Map[String,Any] = tweet.get.asInstanceOf[Map[String, Any]]
 				println(map.get("text"))
-
-//				val df = Seq(map.get("text").toString).toDF()
-//				df.write.mode(SaveMode.Append).saveAsTable("tweets")
 			}
 		}
 		
