@@ -1,8 +1,8 @@
 #This program is to generate random responses for customer service surveys
 from random import randint
-
+from datetime import datetime
 #First create the file where the results will be stored
-record = open("survey_responses/record_results.csv","w")
+record = open("spoolDirectory/record_results"+datetime.now().strftime('%Y-%m-%d-%m-%d-%H-%M-%S')+".csv","w")
 #Then generate j customers' responses
 for j in range(0,10):
 	#The first number determines the product
