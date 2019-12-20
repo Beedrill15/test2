@@ -5,6 +5,11 @@ from pyspark.streaming.flume import FlumeUtils
 
 from datetime import datetime
 
+from pyspark.sql import SQLContext
+from pyspark.sql.types import StructType
+from pyspark.sql.types import StructField
+from pyspark.sql.types import StringType
+
 #function to save csv to hbase
 def SaveRecord(rdd):
 	#host = 'sparkmaster.example.com'
@@ -22,13 +27,18 @@ def SaveRecord(rdd):
 
 #creates the context for the stream
 sc = SparkContext(appName="StreamingFlume")
-df = sc.textFile("file:////home/hadoop/spoolDirectory/*.COMPLETED")
+sqlc= SQLContext(sc)
+rdd = sc.textFile("file:////home/hadoop/spoolDirectory/*.COMPLETED")
+schema = StructType([
+	StructField("col1_01", StringType())
+])
+df = sqlc.createDataFrame(rdd, schema=schema)
 #sc.setLogLevel("ERROR")
 #ssc = StreamingContext(sc, 1)
 #spark = SparkSession.builder.appName("Flume").getOrCreate()
 
 #df = spark.read.csv("/home/hadoop/spoolingDirectory/*.COMPLETED")
-df.saveAsTextFile("hdfs:///surveys/response"+datetime.now().strftime('%Y.%m.%d.%H.%M.%S'))
+rdd.saveAsTextFile("hdfs:///surveys/response"+datetime.now().strftime('%Y.%m.%d.%H.%M.%S'))
 #creates the stream
 #flumeStream = FlumeUtils.createStream(ssc, "localhost", 56565)
 
@@ -47,7 +57,7 @@ catalog = {
 		"col1":{"cf":"responses", "col":"col1", "type":"string"},
 	}
 }
-#lines.write.options(catalog=catalog).format("org.apache.spark.sql.datasources.hbase").save
+df.write.options(catalog=catalog).format("org.apache.spark.sql.datasources.hbase").save
 
 #ssc.start()
 #ssc.awaitTermination()
